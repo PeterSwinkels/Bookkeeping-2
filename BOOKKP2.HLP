@@ -1,0 +1,13 @@
+ Arrow Keys = Move the cursor.
+Control + C = Copy text.
+Control + D = Remove a row.
+Control + I = Insert a row.
+Control + S = Sort using current column.
+     Delete = Remove text.
+     Escape = Cancel/go to pull-down menus.
+         F1 = Display file list.
+         F2 = Export to Export.txt.
+         F3 = Import from Import.txt.
+     Insert = Paste copied/removed text.
+    Page Up = Go to previous page.
+  Page Down = Go to next page.
