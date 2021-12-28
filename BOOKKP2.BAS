@@ -140,7 +140,7 @@ DIM FileH
 
  FileH = FREEFILE
  OPEN "Names.lst" FOR APPEND LOCK READ WRITE AS FileH
-  PRINT #FileH, FormatTableFileName$(FileName); ","; TIME$; ","; DATE$
+  PRINT #FileH, TableBaseFileName$(FileName); ","; TIME$; ","; DATE$
  CLOSE FileH
 
  AddTableToList$ = FileName
@@ -1113,8 +1113,8 @@ DIM SaveTime AS STRING
     OutFileH = FREEFILE
     OPEN "Names.tmp" FOR OUTPUT LOCK READ WRITE AS OutFileH
      DO UNTIL EOF(InFileH) OR IgnoreError
-      INPUT #InFileH, DeletedFile, SaveTime, SaveDate
-      IF NOT DeletedFile = TableFileName THEN PRINT #OutFileH, DeletedFile; ","; SaveTime; ","; SaveDate
+      INPUT #InFileH, TableFileName, SaveTime, SaveDate
+      IF NOT TableBaseFileName$(DeletedFile) = TableFileName THEN PRINT #OutFileH, DeletedFile; ","; SaveTime; ","; SaveDate
      LOOP
     CLOSE OutFileH
    CLOSE InFileH
