@@ -38,7 +38,7 @@ DECLARE SUB DisplayStatusBar (TableFileName AS STRING, Selection AS SelectionStr
 DECLARE SUB DisplayTableList ()
 DECLARE SUB DrawBox (x, y, BoxWidth, BoxHeight)
 DECLARE SUB Export (Table() AS STRING)
-DECLARE SUB FormatCell (Table() AS STRING, Previous AS ANY, Selection AS ANY, LossGain AS ANY)
+DECLARE SUB FormatCell (Table() AS STRING, Previous AS SelectionStr, Selection AS SelectionStr, LossGain AS LossGainStr)
 DECLARE SUB Import (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
 DECLARE SUB Initialize (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
 DECLARE SUB InsertRow (Table() AS STRING, AtRow, AtPage, LossGain AS LossGainStr)
@@ -51,7 +51,7 @@ DECLARE SUB Quit ()
 DECLARE SUB RemoveRow (Table() AS STRING, AtRow, AtPage, LossGain AS LossGainStr)
 DECLARE SUB RemoveTable (FileName AS STRING, TableFileName AS STRING)
 DECLARE SUB SaveTable (Table() AS STRING, FileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
-DECLARE SUB SetLossGainBlock (Table() AS STRING, Selection AS ANY, Page%, Row%, LossGain AS ANY, Income AS DOUBLE, Expenses AS DOUBLE)
+DECLARE SUB SetLossGainBlock (Table() AS STRING, Selection AS SelectionStr, Page, Row, LossGain AS LossGainStr, Income AS DOUBLE, Expenses AS DOUBLE)
 DECLARE SUB Sort (Table() AS STRING, SortColumn, LossGain AS LossGainStr)
 DECLARE FUNCTION AddTableToList$ (FileName AS STRING)
 DECLARE FUNCTION Choose$ (x, y, Prompt AS STRING, Choices AS STRING)
@@ -395,6 +395,7 @@ DIM FileH
  OPEN FileName FOR BINARY LOCK READ WRITE AS FileH
   Exists = (LOF(FileH) > 0)
  CLOSE FileH
+ IF NOT Exists THEN KILL FileName
 
  FileExists = Exists
 END FUNCTION
