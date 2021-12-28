@@ -1,3 +1,4 @@
+OPTION EXPLICIT
 DEFINT A-Z
 CONST CELLWIDTH = 20
 CONST COLDATE = 0
@@ -14,7 +15,7 @@ CONST NOROW = 255
 CONST ROWSPERPAGE = 21
 CONST TRUE = -1
 
-TYPE LossGainStr
+TYPE LossGainBlockStr
  Page AS INTEGER
  Row AS INTEGER
 END TYPE
@@ -25,10 +26,10 @@ TYPE SelectionStr
  Row AS INTEGER
 END TYPE
 
-DECLARE SUB CalculateLossOrGain (Table() AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
+DECLARE SUB CalculateLossOrGain (Table() AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DECLARE SUB CalculateLossOrGainSelection (Table() AS STRING)
 DECLARE SUB Center (x, Text AS STRING)
-DECLARE SUB ClearLossGainBlock (Table() AS STRING, LossGain AS LossGainStr)
+DECLARE SUB ClearLossGainBlock (Table() AS STRING, LossGainBlock AS LossGainBlockStr)
 DECLARE SUB CreateFile (FileName AS STRING)
 DECLARE SUB DisplayCell (Table() AS STRING, Row, Column, Page)
 DECLARE SUB DisplayHelp ()
@@ -38,21 +39,21 @@ DECLARE SUB DisplayStatusBar (TableFileName AS STRING, Selection AS SelectionStr
 DECLARE SUB DisplayTableList ()
 DECLARE SUB DrawBox (x, y, BoxWidth, BoxHeight)
 DECLARE SUB Export (Table() AS STRING)
-DECLARE SUB FormatCell (Table() AS STRING, Previous AS SelectionStr, Selection AS SelectionStr, LossGain AS LossGainStr)
-DECLARE SUB Import (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
-DECLARE SUB Initialize (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
-DECLARE SUB InsertRow (Table() AS STRING, AtRow, AtPage, LossGain AS LossGainStr)
+DECLARE SUB FormatCell (Table() AS STRING, Previous AS SelectionStr, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+DECLARE SUB Import (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+DECLARE SUB Initialize (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+DECLARE SUB InsertRow (Table() AS STRING, AtRow, AtPage, LossGainBlock AS LossGainBlockStr)
 DECLARE SUB Main ()
 DECLARE SUB MoveRow (Table() AS STRING, SourceRow, SourcePage, TargetRow, TargetPage)
 DECLARE SUB PrintSelection (Table() AS STRING)
 DECLARE SUB PrintTable (Table() AS STRING, Selection AS SelectionStr)
-DECLARE SUB PullDownMenus (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
+DECLARE SUB PullDownMenus (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DECLARE SUB Quit ()
-DECLARE SUB RemoveRow (Table() AS STRING, AtRow, AtPage, LossGain AS LossGainStr)
+DECLARE SUB RemoveRow (Table() AS STRING, AtRow, AtPage, LossGainBlock AS LossGainBlockStr)
 DECLARE SUB RemoveTable (FileName AS STRING, TableFileName AS STRING)
-DECLARE SUB SaveTable (Table() AS STRING, FileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
-DECLARE SUB SetLossGainBlock (Table() AS STRING, Selection AS SelectionStr, Page, Row, LossGain AS LossGainStr, Income AS DOUBLE, Expenses AS DOUBLE)
-DECLARE SUB Sort (Table() AS STRING, SortColumn, LossGain AS LossGainStr)
+DECLARE SUB SaveTable (Table() AS STRING, FileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+DECLARE SUB SetLossGainBlock (Table() AS STRING, Selection AS SelectionStr, Page, Row, LossGainBlock AS LossGainBlockStr, Income AS DOUBLE, Expenses AS DOUBLE)
+DECLARE SUB Sort (Table() AS STRING, SortColumn, LossGainBlock AS LossGainBlockStr)
 DECLARE FUNCTION AddTableToList$ (FileName AS STRING)
 DECLARE FUNCTION Choose$ (x, y, Prompt AS STRING, Choices AS STRING)
 DECLARE FUNCTION FileExists (FileName AS STRING)
@@ -60,12 +61,12 @@ DECLARE FUNCTION FileNamePrompt$ (FileName AS STRING)
 DECLARE FUNCTION FormatTableFileName$ (FileName AS STRING)
 DECLARE FUNCTION GetDescription$ ()
 DECLARE FUNCTION GetInput$ (x, y, Prompt AS STRING, MaximumLength, IsFilePrompt, IsNumeric, Default AS STRING)
-DECLARE FUNCTION InLossGainBlock (Row, Column, Page, LossGain AS LossGainStr)
-DECLARE FUNCTION LoadTable$ (Table() AS STRING, FileName AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
+DECLARE FUNCTION InLossGainBlock (Row, Column, Page, LossGainBlock AS LossGainBlockStr)
+DECLARE FUNCTION LoadTable$ (Table() AS STRING, FileName AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DECLARE FUNCTION Pad$ (Text AS STRING, Padding, RightAligned)
 DECLARE FUNCTION RoundNumber$ (Number AS STRING)
 DECLARE FUNCTION RowEmpty (Table() AS STRING, Row, Page)
-DECLARE FUNCTION SaveTableAs$ (Table() AS STRING, FileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
+DECLARE FUNCTION SaveTableAs$ (Table() AS STRING, FileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DECLARE FUNCTION TableBaseFileName$ (FileName AS STRING)
 DECLARE FUNCTION TableHeader$ ()
 DECLARE FUNCTION TableListed (FileName AS STRING)
@@ -146,7 +147,7 @@ DIM FileH
  AddTableToList$ = FileName
 END FUNCTION
 
-SUB CalculateLossOrGain (Table() AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
+SUB CalculateLossOrGain (Table() AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DIM Expenses AS DOUBLE
 DIM Income AS DOUBLE
 DIM Page
@@ -163,7 +164,7 @@ DIM Row
   IF Row >= Selection.Row AND Page >= Selection.Page THEN EXIT FOR
  NEXT Page
 
- SetLossGainBlock Table(), Selection, Page, Row, LossGain, Income, Expenses
+ SetLossGainBlock Table(), Selection, Page, Row, LossGainBlock, Income, Expenses
 END SUB
 
 SUB CalculateLossOrGainSelection (Table() AS STRING)
@@ -227,16 +228,16 @@ DIM Choice AS STRING
  Choose$ = Choice
 END FUNCTION
 
-SUB ClearLossGainBlock (Table() AS STRING, LossGain AS LossGainStr)
+SUB ClearLossGainBlock (Table() AS STRING, LossGainBlock AS LossGainBlockStr)
 DIM Row
 
- IF NOT LossGain.Row = NOROW AND NOT LossGain.Page = NOPAGE THEN
-  FOR Row = LossGain.Row TO LossGain.Row + 3
-   Table(Row, COLINCOME, LossGain.Page) = ""
-   Table(Row, COLEXPENSE, LossGain.Page) = ""
+ IF NOT LossGainBlock.Row = NOROW AND NOT LossGainBlock.Page = NOPAGE THEN
+  FOR Row = LossGainBlock.Row TO LossGainBlock.Row + 3
+   Table(Row, COLINCOME, LossGainBlock.Page) = ""
+   Table(Row, COLEXPENSE, LossGainBlock.Page) = ""
   NEXT Row
-  LossGain.Row = NOROW
-  LossGain.Page = NOPAGE
+  LossGainBlock.Row = NOROW
+  LossGainBlock.Page = NOPAGE
  END IF
 END SUB
 
@@ -405,8 +406,8 @@ FUNCTION FileNamePrompt$ (FileName AS STRING)
  FileNamePrompt$ = GetInput$(6, 29, " File Name: ", 8, TRUE, FALSE, FileName)
 END FUNCTION
 
-SUB FormatCell (Table() AS STRING, Previous AS SelectionStr, Selection AS SelectionStr, LossGain AS LossGainStr)
- IF NOT InLossGainBlock(Previous.Row, Previous.Column, Previous.Page, LossGain) THEN
+SUB FormatCell (Table() AS STRING, Previous AS SelectionStr, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+ IF NOT InLossGainBlock(Previous.Row, Previous.Column, Previous.Page, LossGainBlock) THEN
   IF NOT (Previous.Row = Selection.Row AND Previous.Column = Selection.Column AND Previous.Page = Selection.Page) THEN
    IF NOT Table(Previous.Row, Previous.Column, Previous.Page) = "" THEN
     IF Previous.Column = COLINCOME OR Previous.Column = COLEXPENSE THEN
@@ -474,7 +475,7 @@ DIM Text AS STRING
  GetInput$ = Text
 END FUNCTION
 
-SUB Import (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
+SUB Import (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DIM AbsoluteLossGainRow AS STRING
 DIM Column
 DIM Delimiter AS STRING
@@ -488,7 +489,7 @@ DIM Row
  IF FileExists("Import.txt") THEN
   FileH = FREEFILE
   OPEN "Import.txt" FOR BINARY LOCK READ WRITE AS FileH
-   Initialize Table(), TableFileName, Selection, LossGain
+   Initialize Table(), TableFileName, Selection, LossGainBlock
    ImportData = INPUT$(LOF(FileH), FileH)
   CLOSE FileH
 
@@ -501,8 +502,8 @@ DIM Row
   DrawBox 7, 19, 40, 1
   AbsoluteLossGainRow = GetInput$(8, 21, " Loss/Gain row: ", 5, FALSE, TRUE, "")
   IF NOT AbsoluteLossGainRow = "" THEN
-   LossGain.Page = VAL(AbsoluteLossGainRow) \ ROWSPERPAGE
-   LossGain.Row = VAL(AbsoluteLossGainRow) - (LossGain.Page * ROWSPERPAGE)
+   LossGainBlock.Page = VAL(AbsoluteLossGainRow) \ ROWSPERPAGE
+   LossGainBlock.Row = VAL(AbsoluteLossGainRow) - (LossGainBlock.Page * ROWSPERPAGE)
   END IF
 
   FOR Page = LBOUND(Table, 3) TO UBOUND(Table, 3)
@@ -517,7 +518,7 @@ DIM Row
      Table(Row, Column, Page) = LEFT$(ImportData, Length - 1)
      IF Length > MAXIMUMDATALENGTH THEN Table(Row, Column, Page) = LEFT$(Table(Row, Column, Page), MAXIMUMDATALENGTH)
      IF Column = COLINCOME OR Column = COLEXPENSE THEN
-      IF NOT InLossGainBlock(Row, Column, Page, LossGain) THEN
+      IF NOT InLossGainBlock(Row, Column, Page, LossGainBlock) THEN
        IF NOT Table(Row, Column, Page) = "" THEN
         Table(Row, Column, Page) = RoundNumber(Table(Row, Column, Page))
        END IF
@@ -532,7 +533,7 @@ DIM Row
  END IF
 END SUB
 
-SUB Initialize (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
+SUB Initialize (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DIM FileName AS STRING
 
  SCREEN 0: WIDTH 80, 25: COLOR 7, 0: CLS
@@ -540,8 +541,8 @@ DIM FileName AS STRING
  REDIM Table(0 TO 20, 0 TO 3, 0 TO 20) AS STRING
 
  IgnoreError = FALSE
- LossGain.Page = NOPAGE
- LossGain.Row = NOROW
+ LossGainBlock.Page = NOPAGE
+ LossGainBlock.Row = NOROW
  Selection.Column = LBOUND(Table, 2)
  Selection.Page = LBOUND(Table, 3)
  Selection.Row = LBOUND(Table, 1)
@@ -550,18 +551,18 @@ DIM FileName AS STRING
  IF NOT COMMAND$ = "" THEN
   FileName = COMMAND$
   IF INSTR(FileName, ".") > 0 THEN FileName = LEFT$(FileName, INSTR(FileName, ".") - 1)
-  TableFileName = LoadTable$(Table(), FileName, TableFileName, Selection, LossGain)
+  TableFileName = LoadTable$(Table(), FileName, TableFileName, Selection, LossGainBlock)
  END IF
 END SUB
 
-FUNCTION InLossGainBlock (Row, Column, Page, LossGain AS LossGainStr)
+FUNCTION InLossGainBlock (Row, Column, Page, LossGainBlock AS LossGainBlockStr)
 DIM InBlock
 
  InBlock = FALSE
 
- IF Page = LossGain.Page THEN
+ IF Page = LossGainBlock.Page THEN
   IF Column = COLINCOME OR Column = COLEXPENSE THEN
-   IF Row >= LossGain.Row AND Row <= LossGain.Row + 4 THEN
+   IF Row >= LossGainBlock.Row AND Row <= LossGainBlock.Row + 4 THEN
     InBlock = TRUE
    END IF
   END IF
@@ -570,19 +571,19 @@ DIM InBlock
  InLossGainBlock = InBlock
 END FUNCTION
 
-SUB InsertRow (Table() AS STRING, AtRow, AtPage, LossGain AS LossGainStr)
+SUB InsertRow (Table() AS STRING, AtRow, AtPage, LossGainBlock AS LossGainBlockStr)
 DIM EndRow
 DIM Page
 DIM Row
 
- IF NOT (LossGain.Row = NOPAGE OR LossGain.Page = NOPAGE) THEN
-  IF LossGain.Page > AtPage THEN
-   IF LossGain.Row = UBOUND(Table, 1) THEN
-    LossGain.Page = LossGain.Page + 1
-    LossGain.Row = LBOUND(Table, 1)
+ IF NOT (LossGainBlock.Row = NOPAGE OR LossGainBlock.Page = NOPAGE) THEN
+  IF LossGainBlock.Page > AtPage THEN
+   IF LossGainBlock.Row = UBOUND(Table, 1) THEN
+    LossGainBlock.Page = LossGainBlock.Page + 1
+    LossGainBlock.Row = LBOUND(Table, 1)
    END IF
-  ELSEIF LossGain.Row > AtRow THEN
-   LossGain.Row = LossGain.Row + 1
+  ELSEIF LossGainBlock.Row > AtRow THEN
+   LossGainBlock.Row = LossGainBlock.Row + 1
   END IF
  END IF
 
@@ -598,7 +599,7 @@ DIM Row
  NEXT Page
 END SUB
 
-FUNCTION LoadTable$ (Table() AS STRING, FileName AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
+FUNCTION LoadTable$ (Table() AS STRING, FileName AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DIM Column
 DIM FileH
 DIM Length
@@ -611,12 +612,12 @@ DIM Row
    IgnoreError = FALSE
    FileH = FREEFILE
    OPEN FileName FOR BINARY LOCK READ WRITE AS FileH
-    Initialize Table(), TableFileName, Selection, LossGain
+    Initialize Table(), TableFileName, Selection, LossGainBlock
     Selection.Row = ASC(INPUT$(1, FileH))
     Selection.Column = ASC(INPUT$(1, FileH))
     Selection.Page = ASC(INPUT$(1, FileH))
-    LossGain.Row = ASC(INPUT$(1, FileH))
-    LossGain.Page = ASC(INPUT$(1, FileH))
+    LossGainBlock.Row = ASC(INPUT$(1, FileH))
+    LossGainBlock.Page = ASC(INPUT$(1, FileH))
     FOR Page = LBOUND(Table, 3) TO UBOUND(Table, 3)
      IF IgnoreError THEN EXIT FOR
       FOR Row = LBOUND(Table, 1) TO UBOUND(Table, 1)
@@ -641,13 +642,13 @@ SUB Main ()
 DIM ClipBoardData AS STRING
 DIM KeyStroke AS STRING
 DIM Length
-DIM LossGain AS LossGainStr
+DIM LossGainBlock AS LossGainBlockStr
 DIM Previous AS SelectionStr
 DIM Selection AS SelectionStr
 DIM Table(0 TO 0, 0 TO 0, 0 TO 0) AS STRING
 DIM TableFileName AS STRING
 
- Initialize Table(), TableFileName, Selection, LossGain
+ Initialize Table(), TableFileName, Selection, LossGainBlock
 
  DisplayPage Table(), Selection
  DO
@@ -712,8 +713,8 @@ DIM TableFileName AS STRING
      IF Length = 0 THEN Table(Selection.Row, Selection.Column, Selection.Page) = ClipBoardData
     END IF
    CASE CHR$(0) + "S"
-    IF InLossGainBlock(Selection.Row, Selection.Column, Selection.Page, LossGain) THEN
-     ClearLossGainBlock Table(), LossGain
+    IF InLossGainBlock(Selection.Row, Selection.Column, Selection.Page, LossGainBlock) THEN
+     ClearLossGainBlock Table(), LossGainBlock
      DisplayPage Table(), Selection
     ELSE
      IF Length > 0 THEN
@@ -730,22 +731,22 @@ DIM TableFileName AS STRING
    CASE CHR$(0) + "="
     DrawBox 8, 32, 14, 1
     IF Choose(9, 34, "Import Y/N?", "YN") = "Y" THEN
-     Import Table(), TableFileName, Selection, LossGain
+     Import Table(), TableFileName, Selection, LossGainBlock
      TableFileName = ""
     END IF
     DisplayPage Table(), Selection
    CASE CHR$(3)
     IF Length > 0 THEN ClipBoardData = Table(Selection.Row, Selection.Column, Selection.Page)
    CASE CHR$(4)
-    RemoveRow Table(), Selection.Row, Selection.Page, LossGain
+    RemoveRow Table(), Selection.Row, Selection.Page, LossGainBlock
     DisplayPage Table(), Selection
    CASE CHR$(8)
-    IF NOT InLossGainBlock(Selection.Row, Selection.Column, Selection.Page, LossGain) THEN
+    IF NOT InLossGainBlock(Selection.Row, Selection.Column, Selection.Page, LossGainBlock) THEN
      IF Length > 0 THEN Table(Selection.Row, Selection.Column, Selection.Page) = LEFT$(Table(Selection.Row, Selection.Column, Selection.Page), Length - 1)
     END IF
    CASE CHR$(9)
     IF RowEmpty(Table(), UBOUND(Table, 1), UBOUND(Table, 3) - 1) THEN
-     InsertRow Table(), Selection.Row, Selection.Page, LossGain
+     InsertRow Table(), Selection.Row, Selection.Page, LossGainBlock
      DisplayPage Table(), Selection
     ELSE
      DrawBox 5, 27, 24, 1
@@ -769,14 +770,14 @@ DIM TableFileName AS STRING
      END IF
     END IF
    CASE CHR$(19)
-    Sort Table(), Selection.Column, LossGain
+    Sort Table(), Selection.Column, LossGainBlock
     DisplayPage Table(), Selection
    CASE CHR$(27)
-    PullDownMenus Table(), TableFileName, Selection, LossGain
+    PullDownMenus Table(), TableFileName, Selection, LossGainBlock
     DisplayPage Table(), Selection
    CASE ELSE
     IF Selection.Page < UBOUND(Table, 3) THEN
-     IF NOT InLossGainBlock(Selection.Row, Selection.Column, Selection.Page, LossGain) THEN
+     IF NOT InLossGainBlock(Selection.Row, Selection.Column, Selection.Page, LossGainBlock) THEN
       IF Selection.Column = COLDATE OR Selection.Column = COLDESCRIPTION THEN
        IF KeyStroke >= " " AND Length < MAXIMUMDATALENGTH THEN Table(Selection.Row, Selection.Column, Selection.Page) = Table(Selection.Row, Selection.Column, Selection.Page) + KeyStroke
       ELSE
@@ -798,7 +799,7 @@ DIM TableFileName AS STRING
     END IF
    END SELECT
 
-   FormatCell Table(), Previous, Selection, LossGain
+   FormatCell Table(), Previous, Selection, LossGainBlock
  LOOP
 END SUB
 
@@ -910,7 +911,7 @@ DIM StartPage
  END IF
 END SUB
 
-SUB PullDownMenus (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
+SUB PullDownMenus (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DIM FileName AS STRING
 DIM KeyStroke AS STRING
 DIM Menu
@@ -994,28 +995,28 @@ DIM SelectedMenuItem
         CASE 0
          DrawBox 8, 25, 28, 1
          IF Choose$(9, 27, "Start with new table Y/N?", "YN") = "Y" THEN
-          Initialize Table(), TableFileName, Selection, LossGain
+          Initialize Table(), TableFileName, Selection, LossGainBlock
           DisplayPage Table(), Selection
           DisplayStatusBar TableFileName, Selection
           PCOPY 0, 1
          END IF
         CASE 1
-         FileName = LoadTable$(Table(), FileNamePrompt$(""), TableFileName, Selection, LossGain)
+         FileName = LoadTable$(Table(), FileNamePrompt$(""), TableFileName, Selection, LossGainBlock)
          IF NOT FileName = "" THEN TableFileName = FileName
          DisplayPage Table(), Selection
          DisplayStatusBar TableFileName, Selection
          PCOPY 0, 1
         CASE 2
          IF TableFileName = "" THEN
-          FileName = SaveTableAs$(Table(), FileNamePrompt$(TableBaseFileName$(TableFileName)), Selection, LossGain)
+          FileName = SaveTableAs$(Table(), FileNamePrompt$(TableBaseFileName$(TableFileName)), Selection, LossGainBlock)
           IF NOT FileName = "" THEN TableFileName = FileName
           DisplayStatusBar TableFileName, Selection
          ELSE
-          SaveTable Table(), TableFileName, Selection, LossGain
+          SaveTable Table(), TableFileName, Selection, LossGainBlock
           DisplayStatusBar TableFileName, Selection
          END IF
         CASE 3
-         FileName = SaveTableAs$(Table(), FileNamePrompt$(TableBaseFileName$(TableFileName)), Selection, LossGain)
+         FileName = SaveTableAs$(Table(), FileNamePrompt$(TableBaseFileName$(TableFileName)), Selection, LossGainBlock)
          IF NOT FileName = "" THEN TableFileName = FileName
          DisplayStatusBar TableFileName, Selection
         CASE 4
@@ -1028,8 +1029,8 @@ DIM SelectedMenuItem
       CASE 1
        SELECT CASE SelectedMenuItem
         CASE 0
-         ClearLossGainBlock Table(), LossGain
-         CalculateLossOrGain Table(), Selection, LossGain
+         ClearLossGainBlock Table(), LossGainBlock
+         CalculateLossOrGain Table(), Selection, LossGainBlock
          DisplayPage Table(), Selection
          PCOPY 0, 1
         CASE 1
@@ -1062,21 +1063,21 @@ SUB Quit ()
  END IF
 END SUB
 
-SUB RemoveRow (Table() AS STRING, AtRow, AtPage, LossGain AS LossGainStr)
+SUB RemoveRow (Table() AS STRING, AtRow, AtPage, LossGainBlock AS LossGainBlockStr)
 DIM Page
 DIM Row
 DIM StartRow
 
- IF InLossGainBlock(AtRow, COLINCOME, AtPage, LossGain) THEN ClearLossGainBlock Table(), LossGain
+ IF InLossGainBlock(AtRow, COLINCOME, AtPage, LossGainBlock) THEN ClearLossGainBlock Table(), LossGainBlock
 
- IF NOT (LossGain.Row = NOPAGE OR LossGain.Page = NOPAGE) THEN
-  IF LossGain.Page > AtPage THEN
-   IF LossGain.Row = LBOUND(Table, 1) THEN
-    LossGain.Page = LossGain.Page - 1
-    LossGain.Row = UBOUND(Table, 1)
+ IF NOT (LossGainBlock.Row = NOPAGE OR LossGainBlock.Page = NOPAGE) THEN
+  IF LossGainBlock.Page > AtPage THEN
+   IF LossGainBlock.Row = LBOUND(Table, 1) THEN
+    LossGainBlock.Page = LossGainBlock.Page - 1
+    LossGainBlock.Row = UBOUND(Table, 1)
    END IF
-  ELSEIF LossGain.Row > AtRow THEN
-   LossGain.Row = LossGain.Row - 1
+  ELSEIF LossGainBlock.Row > AtRow THEN
+   LossGainBlock.Row = LossGainBlock.Row - 1
   END IF
  END IF
 
@@ -1158,7 +1159,7 @@ DIM Empty
  RowEmpty = Empty
 END FUNCTION
 
-SUB SaveTable (Table() AS STRING, FileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
+SUB SaveTable (Table() AS STRING, FileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DIM Column
 DIM FileH
 DIM Page
@@ -1172,8 +1173,8 @@ DIM Row
    PRINT #FileH, CHR$(Selection.Row);
    PRINT #FileH, CHR$(Selection.Column);
    PRINT #FileH, CHR$(Selection.Page);
-   PRINT #FileH, CHR$(LossGain.Row);
-   PRINT #FileH, CHR$(LossGain.Page);
+   PRINT #FileH, CHR$(LossGainBlock.Row);
+   PRINT #FileH, CHR$(LossGainBlock.Page);
    FOR Page = LBOUND(Table, 3) TO UBOUND(Table, 3)
     IF IgnoreError THEN EXIT FOR
      FOR Row = LBOUND(Table, 1) TO UBOUND(Table, 1)
@@ -1188,15 +1189,15 @@ DIM Row
  END IF
 END SUB
 
-FUNCTION SaveTableAs$ (Table() AS STRING, FileName AS STRING, Selection AS SelectionStr, LossGain AS LossGainStr)
+FUNCTION SaveTableAs$ (Table() AS STRING, FileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
  IF NOT FileName = "" THEN
   IF TableListed(FileName) THEN
    DrawBox 5, 20, 38, 1
    IF Choose(6, 22, "File already exists, overwrite Y/N?", "YN") = "Y" THEN
-    SaveTable Table(), FileName, Selection, LossGain
+    SaveTable Table(), FileName, Selection, LossGainBlock
    END IF
   ELSE
-   SaveTable Table(), FileName, Selection, LossGain
+   SaveTable Table(), FileName, Selection, LossGainBlock
    FileName = AddTableToList(FileName)
   END IF
  END IF
@@ -1204,39 +1205,36 @@ FUNCTION SaveTableAs$ (Table() AS STRING, FileName AS STRING, Selection AS Selec
  SaveTableAs$ = FileName
 END FUNCTION
 
-SUB SetLossGainBlock (Table() AS STRING, Selection AS SelectionStr, Page, Row, LossGain AS LossGainStr, Income AS DOUBLE, Expenses AS DOUBLE)
+SUB SetLossGainBlock (Table() AS STRING, Selection AS SelectionStr, Page, Row, LossGainBlock AS LossGainBlockStr, Income AS DOUBLE, Expenses AS DOUBLE)
 DIM Column
 DIM IsLoss
-DIM LossGainData AS STRING
 
  IsLoss = (Income - Expenses < 0)
-
- LossGainData = "$ " + RoundNumber$(STR$(ABS(Income - Expenses)))
-
+ 
  IF Row < UBOUND(Table, 1) - 2 THEN
-  LossGain.Row = Row
-  LossGain.Page = Page
+  LossGainBlock.Row = Row
+  LossGainBlock.Page = Page
  ELSE
-  LossGain.Row = 0
+  LossGainBlock.Row = 0
   IF Selection.Page = 21 THEN
-   LossGain.Page = Selection.Page
+   LossGainBlock.Page = Selection.Page
   ELSE
-   LossGain.Page = Page + 1
+   LossGainBlock.Page = Page + 1
   END IF
  END IF
 
  IF IsLoss THEN Column = COLEXPENSE ELSE Column = COLINCOME
 
- Table(LossGain.Row, Column, LossGain.Page) = LossGainData
- Table(LossGain.Row + 1, COLINCOME, LossGain.Page) = STRING$(MAXIMUMDATALENGTH, "-")
- Table(LossGain.Row + 1, COLEXPENSE, LossGain.Page) = STRING$(MAXIMUMDATALENGTH, "-")
- Table(LossGain.Row + 2, COLINCOME, LossGain.Page) = "$ " + RoundNumber$(STR$(Income))
- Table(LossGain.Row + 2, COLEXPENSE, LossGain.Page) = "$ " + RoundNumber$(STR$(Expenses))
- Table(LossGain.Row + 3, COLINCOME, LossGain.Page) = STRING$(MAXIMUMDATALENGTH, "=")
- Table(LossGain.Row + 3, COLEXPENSE, LossGain.Page) = STRING$(MAXIMUMDATALENGTH, "=")
+ Table(LossGainBlock.Row, Column, LossGainBlock.Page) = "$ " + RoundNumber$(STR$(ABS(Income - Expenses)))
+ Table(LossGainBlock.Row + 1, COLINCOME, LossGainBlock.Page) = STRING$(MAXIMUMDATALENGTH, "-")
+ Table(LossGainBlock.Row + 1, COLEXPENSE, LossGainBlock.Page) = STRING$(MAXIMUMDATALENGTH, "-")
+ Table(LossGainBlock.Row + 2, COLINCOME, LossGainBlock.Page) = "$ " + RoundNumber$(STR$(Income))
+ Table(LossGainBlock.Row + 2, COLEXPENSE, LossGainBlock.Page) = "$ " + RoundNumber$(STR$(Expenses))
+ Table(LossGainBlock.Row + 3, COLINCOME, LossGainBlock.Page) = STRING$(MAXIMUMDATALENGTH, "=")
+ Table(LossGainBlock.Row + 3, COLEXPENSE, LossGainBlock.Page) = STRING$(MAXIMUMDATALENGTH, "=")
 END SUB
 
-SUB Sort (Table() AS STRING, SortColumn, LossGain AS LossGainStr)
+SUB Sort (Table() AS STRING, SortColumn, LossGainBlock AS LossGainBlockStr)
 DIM Column
 DIM OtherPage
 DIM OtherRow
@@ -1246,12 +1244,12 @@ DIM Row
  FOR Page = LBOUND(Table, 3) TO UBOUND(Table, 3) - 1
   FOR Row = LBOUND(Table, 1) TO UBOUND(Table, 1)
    IF NOT RowEmpty(Table(), Row, Page) THEN
-    IF NOT InLossGainBlock(Row, COLINCOME, Page, LossGain) THEN
+    IF NOT InLossGainBlock(Row, COLINCOME, Page, LossGainBlock) THEN
      FOR OtherPage = LBOUND(Table, 3) TO UBOUND(Table, 3) - 1
       FOR OtherRow = LBOUND(Table, 1) TO UBOUND(Table, 1)
        IF NOT (OtherRow = Row AND OtherPage = Page) THEN
         IF NOT RowEmpty(Table(), OtherRow, OtherPage) THEN
-         IF NOT InLossGainBlock(OtherRow, COLINCOME, OtherPage, LossGain) THEN
+         IF NOT InLossGainBlock(OtherRow, COLINCOME, OtherPage, LossGainBlock) THEN
           IF Table(Row, SortColumn, Page) < Table(OtherRow, SortColumn, OtherPage) THEN
            FOR Column = LBOUND(Table, 2) TO UBOUND(Table, 2)
             SWAP Table(Row, Column, Page), Table(OtherRow, Column, OtherPage)
