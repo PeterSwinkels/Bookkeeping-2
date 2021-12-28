@@ -847,10 +847,9 @@ DIM Row
       ELSE
        LPRINT " "; Pad$(Table(Row, Column, Page), MAXIMUMDATALENGTH, FALSE); " ";
       END IF
-
-      Income = Income + VAL(Table(Row, COLINCOME, Page))
-      Expenses = Expenses + VAL(Table(Row, COLEXPENSE, Page))
      NEXT Column
+     Income = Income + VAL(Table(Row, COLINCOME, Page))
+     Expenses = Expenses + VAL(Table(Row, COLEXPENSE, Page))
     END IF
    NEXT Row
   NEXT Page
