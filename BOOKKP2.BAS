@@ -257,7 +257,7 @@ DIM PadRight
  PRINT " "; Pad$(Table(Row, Column, Page), MAXIMUMDATALENGTH, PadRight); " ";
 END SUB
 
-SUB DisplayHelp
+SUB DisplayHelp ()
 DIM FileH
 DIM HelpText AS STRING
 
@@ -277,7 +277,7 @@ DIM HelpText AS STRING
  DO WHILE INKEY$ = "": LOOP
 END SUB
 
-SUB DisplayInformation
+SUB DisplayInformation ()
  DrawBox 5, 28, 22, 3
 
  Center 6, "Bookkeeping 2"
@@ -313,7 +313,7 @@ SUB DisplayStatusBar (TableFileName AS STRING, Selection AS SelectionStr)
  END IF
 END SUB
 
-SUB DisplayTableList
+SUB DisplayTableList ()
 DIM FileH
 DIM KeyStroke AS STRING
 DIM ListFile AS STRING
@@ -429,7 +429,7 @@ DIM TableFileName AS STRING
  FormatTableFileName$ = TableFileName + ".bk2"
 END FUNCTION
 
-FUNCTION GetDescription$
+FUNCTION GetDescription$ ()
  DrawBox 7, 22, 34, 1
  GetDescription$ = GetInput$(8, 23, " Description: ", MAXIMUMDATALENGTH, FALSE, FALSE, "")
 END FUNCTION
@@ -637,7 +637,7 @@ DIM Row
  LoadTable$ = FileName
 END FUNCTION
 
-SUB Main
+SUB Main ()
 DIM ClipBoardData AS STRING
 DIM KeyStroke AS STRING
 DIM Length
@@ -1054,7 +1054,7 @@ DIM SelectedMenuItem
  LOOP UNTIL KeyStroke = CHR$(27)
 END SUB
 
-SUB Quit
+SUB Quit ()
  DrawBox 8, 33, 12, 1
  IF Choose(9, 35, "Quit Y/N?", "YN") = "Y" THEN
   SCREEN 0: WIDTH 80, 25
@@ -1226,7 +1226,7 @@ DIM LossGainData AS STRING
   END IF
  END IF
 
- IF IsLoss THEN Column = COLINCOME ELSE Column = COLEXPENSE
+ IF IsLoss THEN Column = COLEXPENSE ELSE Column = COLINCOME
 
  Table(LossGain.Row, Column, LossGain.Page) = LossGainData
  Table(LossGain.Row + 1, COLINCOME, LossGain.Page) = STRING$(MAXIMUMDATALENGTH, "-")
@@ -1278,7 +1278,7 @@ DIM BaseFileName AS STRING
  TableBaseFileName$ = BaseFileName
 END FUNCTION
 
-FUNCTION TableHeader$
+FUNCTION TableHeader$ ()
  TableHeader$ = " Date:" + SPACE$(15) + "Description:" + SPACE$(8) + "Income:" + SPACE$(13) + "Expenses:" + SPACE$(10)
 END FUNCTION
 
