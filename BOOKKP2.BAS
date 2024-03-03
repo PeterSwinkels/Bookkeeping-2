@@ -1,4 +1,3 @@
-OPTION EXPLICIT
 DEFINT A-Z
 CONST CELLWIDTH = 20
 CONST COLDATE = 0
@@ -40,8 +39,8 @@ DECLARE SUB DisplayTableList ()
 DECLARE SUB DrawBox (x, y, BoxWidth, BoxHeight)
 DECLARE SUB Export (Table() AS STRING)
 DECLARE SUB FormatCell (Table() AS STRING, Previous AS SelectionStr, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
-DECLARE SUB Import (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
-DECLARE SUB Initialize (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+DECLARE SUB Import (TableFileName AS STRING, Table() AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+DECLARE SUB Initialize (TableFileName AS STRING, Table() AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DECLARE SUB InsertRow (Table() AS STRING, AtRow, AtPage, LossGainBlock AS LossGainBlockStr)
 DECLARE SUB Main ()
 DECLARE SUB MoveRow (Table() AS STRING, SourceRow, SourcePage, TargetRow, TargetPage)
@@ -50,8 +49,8 @@ DECLARE SUB PrintTable (Table() AS STRING, Selection AS SelectionStr)
 DECLARE SUB PullDownMenus (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DECLARE SUB Quit ()
 DECLARE SUB RemoveRow (Table() AS STRING, AtRow, AtPage, LossGainBlock AS LossGainBlockStr)
-DECLARE SUB RemoveTable (FileName AS STRING, TableFileName AS STRING)
-DECLARE SUB SaveTable (Table() AS STRING, FileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+DECLARE SUB RemoveTable (FileName AS STRING)
+DECLARE SUB SaveTable (FileName AS STRING, Table() AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DECLARE SUB SetLossGainBlock (Table() AS STRING, Selection AS SelectionStr, Page, Row, LossGainBlock AS LossGainBlockStr, Income AS DOUBLE, Expenses AS DOUBLE)
 DECLARE SUB Sort (Table() AS STRING, SortColumn, LossGainBlock AS LossGainBlockStr)
 DECLARE FUNCTION AddTableToList$ (FileName AS STRING)
@@ -62,11 +61,11 @@ DECLARE FUNCTION FormatTableFileName$ (FileName AS STRING)
 DECLARE FUNCTION GetDescription$ ()
 DECLARE FUNCTION GetInput$ (x, y, Prompt AS STRING, MaximumLength, IsFilePrompt, IsNumeric, Default AS STRING)
 DECLARE FUNCTION InLossGainBlock (Row, Column, Page, LossGainBlock AS LossGainBlockStr)
-DECLARE FUNCTION LoadTable$ (Table() AS STRING, FileName AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+DECLARE FUNCTION LoadTable$ (FileName AS STRING, TableFileName AS STRING, Table() AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DECLARE FUNCTION Pad$ (Text AS STRING, Padding, RightAligned)
 DECLARE FUNCTION RoundNumber$ (Number AS STRING)
 DECLARE FUNCTION RowEmpty (Table() AS STRING, Row, Page)
-DECLARE FUNCTION SaveTableAs$ (Table() AS STRING, FileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+DECLARE FUNCTION SaveTableAs$ (FileName AS STRING, TableFileName AS STRING, Table() AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DECLARE FUNCTION TableBaseFileName$ (FileName AS STRING)
 DECLARE FUNCTION TableHeader$ ()
 DECLARE FUNCTION TableListed (FileName AS STRING)
@@ -475,7 +474,7 @@ DIM Text AS STRING
  GetInput$ = Text
 END FUNCTION
 
-SUB Import (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+SUB Import (TableFileName AS STRING, Table() AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DIM AbsoluteLossGainRow AS STRING
 DIM Column
 DIM Delimiter AS STRING
@@ -489,7 +488,7 @@ DIM Row
  IF FileExists("Import.txt") THEN
   FileH = FREEFILE
   OPEN "Import.txt" FOR BINARY LOCK READ WRITE AS FileH
-   Initialize Table(), TableFileName, Selection, LossGainBlock
+   Initialize TableFileName, Table(), Selection, LossGainBlock
    ImportData = INPUT$(LOF(FileH), FileH)
   CLOSE FileH
 
@@ -499,8 +498,8 @@ DIM Row
    Position = INSTR(ImportData, CHR$(10))
   LOOP
  
-  DrawBox 7, 19, 40, 1
-  AbsoluteLossGainRow = GetInput$(8, 21, " Loss/Gain row: ", 5, FALSE, TRUE, "")
+  DrawBox 7, 27, 24, 1
+  AbsoluteLossGainRow = GetInput$(8, 28, " Loss/Gain row: ", 6, FALSE, TRUE, "")
   IF NOT AbsoluteLossGainRow = "" THEN
    LossGainBlock.Page = VAL(AbsoluteLossGainRow) \ ROWSPERPAGE
    LossGainBlock.Row = VAL(AbsoluteLossGainRow) - (LossGainBlock.Page * ROWSPERPAGE)
@@ -533,7 +532,7 @@ DIM Row
  END IF
 END SUB
 
-SUB Initialize (Table() AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+SUB Initialize (TableFileName AS STRING, Table() AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DIM FileName AS STRING
 
  SCREEN 0: WIDTH 80, 25: COLOR 7, 0: CLS
@@ -551,7 +550,7 @@ DIM FileName AS STRING
  IF NOT COMMAND$ = "" THEN
   FileName = COMMAND$
   IF INSTR(FileName, ".") > 0 THEN FileName = LEFT$(FileName, INSTR(FileName, ".") - 1)
-  TableFileName = LoadTable$(Table(), FileName, TableFileName, Selection, LossGainBlock)
+  TableFileName = LoadTable$(FileName, TableFileName, Table(), Selection, LossGainBlock)
  END IF
 END SUB
 
@@ -599,7 +598,7 @@ DIM Row
  NEXT Page
 END SUB
 
-FUNCTION LoadTable$ (Table() AS STRING, FileName AS STRING, TableFileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+FUNCTION LoadTable$ (FileName AS STRING, TableFileName AS STRING, Table() AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DIM Column
 DIM FileH
 DIM Length
@@ -612,7 +611,7 @@ DIM Row
    IgnoreError = FALSE
    FileH = FREEFILE
    OPEN FileName FOR BINARY LOCK READ WRITE AS FileH
-    Initialize Table(), TableFileName, Selection, LossGainBlock
+    Initialize TableFileName, Table(), Selection, LossGainBlock
     Selection.Row = ASC(INPUT$(1, FileH))
     Selection.Column = ASC(INPUT$(1, FileH))
     Selection.Page = ASC(INPUT$(1, FileH))
@@ -648,7 +647,7 @@ DIM Selection AS SelectionStr
 DIM Table(0 TO 0, 0 TO 0, 0 TO 0) AS STRING
 DIM TableFileName AS STRING
 
- Initialize Table(), TableFileName, Selection, LossGainBlock
+ Initialize TableFileName, Table(), Selection, LossGainBlock
 
  DisplayPage Table(), Selection
  DO
@@ -731,7 +730,7 @@ DIM TableFileName AS STRING
    CASE CHR$(0) + "="
     DrawBox 8, 32, 14, 1
     IF Choose(9, 34, "Import Y/N?", "YN") = "Y" THEN
-     Import Table(), TableFileName, Selection, LossGainBlock
+     Import TableFileName, Table(), Selection, LossGainBlock
      TableFileName = ""
     END IF
     DisplayPage Table(), Selection
@@ -907,6 +906,10 @@ DIM StartPage
      END IF
     NEXT Row
    NEXT Page
+  ELSE
+   DrawBox 5, 27, 24, 1
+   Center 6, "Invalid page selected."
+   DO WHILE INKEY$ = "": LOOP
   END IF
  END IF
 END SUB
@@ -995,32 +998,38 @@ DIM SelectedMenuItem
         CASE 0
          DrawBox 8, 25, 28, 1
          IF Choose$(9, 27, "Start with new table Y/N?", "YN") = "Y" THEN
-          Initialize Table(), TableFileName, Selection, LossGainBlock
+          Initialize TableFileName, Table(), Selection, LossGainBlock
           DisplayPage Table(), Selection
           DisplayStatusBar TableFileName, Selection
           PCOPY 0, 1
          END IF
         CASE 1
-         FileName = LoadTable$(Table(), FileNamePrompt$(""), TableFileName, Selection, LossGainBlock)
+         FileName = LoadTable$(FileNamePrompt$(""), TableFileName, Table(), Selection, LossGainBlock)
          IF NOT FileName = "" THEN TableFileName = FileName
          DisplayPage Table(), Selection
          DisplayStatusBar TableFileName, Selection
          PCOPY 0, 1
         CASE 2
          IF TableFileName = "" THEN
-          FileName = SaveTableAs$(Table(), FileNamePrompt$(TableBaseFileName$(TableFileName)), Selection, LossGainBlock)
+          FileName = SaveTableAs$(FileNamePrompt$(TableBaseFileName$(TableFileName)), TableFileName, Table(), Selection, LossGainBlock)
           IF NOT FileName = "" THEN TableFileName = FileName
+          DisplayPage Table(), Selection
           DisplayStatusBar TableFileName, Selection
+          PCOPY 0, 1
          ELSE
-          SaveTable Table(), TableFileName, Selection, LossGainBlock
+          SaveTable TableFileName, Table(), Selection, LossGainBlock
+          DisplayPage Table(), Selection
           DisplayStatusBar TableFileName, Selection
+          PCOPY 0, 1
          END IF
         CASE 3
-         FileName = SaveTableAs$(Table(), FileNamePrompt$(TableBaseFileName$(TableFileName)), Selection, LossGainBlock)
+         FileName = SaveTableAs$(FileNamePrompt$(TableBaseFileName$(TableFileName)), TableFileName, Table(), Selection, LossGainBlock)
          IF NOT FileName = "" THEN TableFileName = FileName
+         DisplayPage Table(), Selection
          DisplayStatusBar TableFileName, Selection
+         PCOPY 0, 1
         CASE 4
-         RemoveTable FileNamePrompt$(TableBaseFileName$(TableFileName)), TableFileName
+         RemoveTable FileNamePrompt$(TableBaseFileName$(TableFileName))
         CASE 5
          PrintTable Table(), Selection
         CASE 6
@@ -1093,12 +1102,13 @@ DIM StartRow
  NEXT Page
 END SUB
 
-SUB RemoveTable (FileName AS STRING, TableFileName AS STRING)
+SUB RemoveTable (FileName AS STRING)
 DIM DeletedFile AS STRING
 DIM InFileH
 DIM OutFileH
 DIM SaveDate AS STRING
 DIM SaveTime AS STRING
+DIM TableFileName AS STRING
 
  IF NOT (FileName = "" OR INSTR(FileName, "*") > 0) THEN
   DeletedFile = FormatTableFileName$(FileName)
@@ -1159,7 +1169,7 @@ DIM Empty
  RowEmpty = Empty
 END FUNCTION
 
-SUB SaveTable (Table() AS STRING, FileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+SUB SaveTable (FileName AS STRING, Table() AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
 DIM Column
 DIM FileH
 DIM Page
@@ -1189,15 +1199,17 @@ DIM Row
  END IF
 END SUB
 
-FUNCTION SaveTableAs$ (Table() AS STRING, FileName AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
+FUNCTION SaveTableAs$ (FileName AS STRING, TableFileName AS STRING, Table() AS STRING, Selection AS SelectionStr, LossGainBlock AS LossGainBlockStr)
  IF NOT FileName = "" THEN
   IF TableListed(FileName) THEN
    DrawBox 5, 20, 38, 1
    IF Choose(6, 22, "File already exists, overwrite Y/N?", "YN") = "Y" THEN
-    SaveTable Table(), FileName, Selection, LossGainBlock
+    SaveTable FileName, Table(), Selection, LossGainBlock
+   ELSE
+    FileName = TableFileName
    END IF
   ELSE
-   SaveTable Table(), FileName, Selection, LossGainBlock
+   SaveTable FileName, Table(), Selection, LossGainBlock
    FileName = AddTableToList(FileName)
   END IF
  END IF
